@@ -4,27 +4,32 @@ pragma solidity ^0.8.0;
 import "./AuctionToken.sol";
 
 contract DutchAuction {
+    AuctionToken public auctionToken;
     address payable public seller;
     uint public initialPrice;
     uint public reservePrice;
     uint public priceDecreaseRate;
-    uint public auctionEndTime;
     uint public priceDecreaseInterval;
-    uint public totalTokens;  // Total tokens available in the auction
+    uint public auctionStartTime;
+    uint public auctionEndTime;
+    uint public totalTokens; // Total tokens available in the auction
     bool public ended;
+    uint public finalPrice; // This will store the final confirmed price
 
     struct Bidder {
         uint investedAmount; // Amount invested by the bidder
-        uint tokensOwned;    // Tokens allocated to the bidder
+        uint tokensOwned;    // Tokens to be allocated to the bidder
     }
 
     mapping(address => Bidder) public bidders;
+    address[] private bidderAddresses;
 
-    event TokensPurchased(address bidder, uint amountInvested, uint tokensAllocated);
-    event ExcessRefunded(address bidder, uint amountRefunded);
-    event AuctionEnded();
+    event TokensPurchased(address bidder, uint amountInvested, uint tokensToBeAllocated);
+    event TokensDistributed(address bidder, uint tokensAllocated, uint amountRefunded);
+    event AuctionEnded(uint finalPrice);
 
     constructor(
+        address _tokenAddress,
         uint _initialPrice,
         uint _reservePrice,
         uint _priceDecreaseRate,
@@ -32,22 +37,21 @@ contract DutchAuction {
         uint _duration,
         uint _totalTokens
     ) {
+        auctionToken = AuctionToken(_tokenAddress);
         seller = payable(msg.sender);
         initialPrice = _initialPrice;
         reservePrice = _reservePrice;
         priceDecreaseRate = _priceDecreaseRate;
         priceDecreaseInterval = _priceDecreaseInterval;
-        auctionEndTime = block.timestamp + _duration;
+        auctionStartTime = block.timestamp;
+        auctionEndTime = auctionStartTime + _duration;
         totalTokens = _totalTokens;
     }
 
     // Calculate the current price based on time elapsed and decrease rate
     function currentPrice() public view returns (uint) {
         if (block.timestamp <= auctionEndTime) {
-            uint elapsed = block.timestamp + priceDecreaseInterval - auctionEndTime; // Adjust this line to calculate elapsed time since auction start properly.
-            if (elapsed < 0) {
-                return initialPrice; // Return initial price if the auction has not started yet
-            }
+            uint elapsed = block.timestamp - auctionStartTime;
             uint priceDecrease = (elapsed / priceDecreaseInterval) * priceDecreaseRate;
             uint _currentPrice = initialPrice > priceDecrease ? initialPrice - priceDecrease : reservePrice;
             return _currentPrice > reservePrice ? _currentPrice : reservePrice;
@@ -56,47 +60,53 @@ contract DutchAuction {
         }
     }
 
-
-    // Function to buy tokens at the current price or reserve price when auction ends
+    // Function to buy tokens at the current price
     function buyTokens() external payable {
         require(block.timestamp <= auctionEndTime, "Auction has already ended.");
         require(!ended, "Auction already ended.");
         
         uint _currentPrice = currentPrice();
         uint tokensToBuy = msg.value / _currentPrice;
-        require(tokensToBuy <= totalTokens, "Not enough tokens available");
+        if (tokensToBuy >= totalTokens)
+        {
+            tokensToBuy = totalTokens;
+        }
+        // require(tokensToBuy <= totalTokens, "Not enough tokens available");
 
-        if (tokensToBuy >= totalTokens) {
-            uint totalCost = totalTokens * _currentPrice;
-            uint refundAmount = msg.value - totalCost;
-            bidders[msg.sender].investedAmount += totalCost;
-            bidders[msg.sender].tokensOwned += totalTokens;
-            totalTokens = 0;
-            ended = true;
+        // Update bidder's record in the struct
+        if (bidders[msg.sender].investedAmount == 0 && bidders[msg.sender].tokensOwned == 0) {
+            // Assuming a new bidder if no funds or tokens were previously recorded
+            bidderAddresses.push(msg.sender);
+        }
+        bidders[msg.sender].investedAmount += msg.value;
+        bidders[msg.sender].tokensOwned += tokensToBuy;
+        totalTokens -= tokensToBuy;
 
-            if (refundAmount > 0) {
-                payable(msg.sender).transfer(refundAmount);
-                emit ExcessRefunded(msg.sender, refundAmount);
+        emit TokensPurchased(msg.sender, msg.value, tokensToBuy);
+
+        if (totalTokens == 0 || block.timestamp >= auctionEndTime) {
+            finalizeAuction(_currentPrice);
+        }
+    }
+
+    // Finalize the auction, distribute tokens and refund excess funds
+    function finalizeAuction(uint fP) private {
+        ended = true;
+        finalPrice = fP;
+        for (uint i = 0; i < bidderAddresses.length; i++) {
+            Bidder storage bidder = bidders[bidderAddresses[i]];
+            uint totalCost = bidder.tokensOwned * finalPrice;
+            uint refund = bidder.investedAmount > totalCost ? bidder.investedAmount - totalCost : 0;
+
+            if (refund > 0) {
+                payable(bidderAddresses[i]).transfer(refund);
             }
-            emit TokensPurchased(msg.sender, totalCost, totalTokens);
-        } else {
-            bidders[msg.sender].investedAmount += msg.value;
-            bidders[msg.sender].tokensOwned += tokensToBuy;
-            totalTokens -= tokensToBuy;
-            emit TokensPurchased(msg.sender, msg.value, tokensToBuy);
+
+            auctionToken.transfer(bidderAddresses[i], bidder.tokensOwned);
+            emit TokensDistributed(bidderAddresses[i], bidder.tokensOwned, refund);
         }
 
-        if (totalTokens == 0) {
-            ended = true;
-            emit AuctionEnded();
-        }
+        emit AuctionEnded(finalPrice);
     }
 
-    // Finalize auction and transfer funds
-    function finalize() external {
-        require(ended, "Auction has not ended yet.");
-        require(msg.sender == seller, "Only seller can finalize.");
-        
-        seller.transfer(address(this).balance);
-    }
 }

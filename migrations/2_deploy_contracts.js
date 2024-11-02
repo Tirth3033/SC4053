@@ -3,7 +3,7 @@ const DutchAuction = artifacts.require("DutchAuction");
 
 module.exports = async function (deployer) {
     await deployer.deploy(AuctionToken, 1000000); // Deploy AuctionToken with an initial supply
-
+    const tokenInstance = await AuctionToken.deployed();
     // Define initial parameters for DutchAuction
     const initialPrice = web3.utils.toWei('1', 'ether');      // Starting price in wei (e.g., 1 ether)
     const reservePrice = web3.utils.toWei('0.1', 'ether');    // Minimum price in wei (e.g., 0.1 ether)
@@ -22,6 +22,7 @@ module.exports = async function (deployer) {
     // Deploy DutchAuction with calculated priceDecreaseRate as a BigNumber string
     await deployer.deploy(
         DutchAuction,
+        tokenInstance.address,
         initialPriceBN.toString(),
         reservePriceBN.toString(),
         priceDecreaseRateBN.toString(),

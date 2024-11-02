@@ -10834,12 +10834,12 @@
         }
       },
       "links": {},
-      "address": "0x6E18e7df59fdd1f82E061b20cDB8e183D3067E14",
-      "transactionHash": "0xa4e32e2ad1b2223a4ca117d7d0fd4f9c71a05dd376b20737b6e4f6f087be3347"
+      "address": "0x14FbFF004Bc4ED2137AB09AdAA47EF1747284a92",
+      "transactionHash": "0x49577ef60afeccdff9e5fc03a7b2fb6db762aee6b9e5359904b91e3fa28d9c7b"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-11-01T21:27:57.006Z",
+  "updatedAt": "2024-11-02T15:59:46.347Z",
   "networkType": "ethereum",
   "devdoc": {
     "errors": {
