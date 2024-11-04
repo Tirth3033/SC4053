@@ -7,8 +7,8 @@ module.exports = async function (deployer) {
     // Define initial parameters for DutchAuction
     const initialPrice = web3.utils.toWei('2', 'ether');      // Starting price in wei (e.g., 1 ether)
     const reservePrice = web3.utils.toWei('0.1', 'ether');    // Minimum price in wei (e.g., 0.1 ether)
-    const priceDecreaseInterval = 60;                         // Price decrease interval in seconds (1 minute)
-    const duration = 20;                                    // Auction duration in seconds (20 minutes)
+    const priceDecreaseInterval = 1;                         // Price decrease interval in seconds (1 minute)
+    const duration = 1200;                                    // Auction duration in seconds (20 minutes)
     const totalTokens = 1000;                                 // Total tokens in the auction
 
     // Calculate the priceDecreaseRate safely using BigNumbers

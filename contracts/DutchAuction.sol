@@ -50,45 +50,46 @@ contract DutchAuction {
 
     // Calculate the current price based on time elapsed and decrease rate
     function currentPrice() public view returns (uint) {
-        // return 1;
-        if (block.timestamp <= auctionEndTime) {
-            uint elapsed = block.timestamp - auctionStartTime;
-            uint priceDecrease = (elapsed / priceDecreaseInterval) * priceDecreaseRate;
-            uint _currentPrice = initialPrice > priceDecrease ? initialPrice - priceDecrease : reservePrice;
-            return _currentPrice > reservePrice ? _currentPrice : reservePrice;
-        } else {
-            return reservePrice;
-        }
+    if (block.timestamp <= auctionEndTime) {
+        uint elapsed = block.timestamp - auctionStartTime;
+        uint priceDecrease = (elapsed / priceDecreaseInterval) * priceDecreaseRate;
+        uint _currentPrice = initialPrice > priceDecrease ? initialPrice - priceDecrease : reservePrice;
+        return _currentPrice > reservePrice ? _currentPrice : reservePrice;
+    } else {
+        return reservePrice;
     }
+}
 
     // Function to buy tokens at the current price
-    function buyTokens() external payable {
-        require(block.timestamp <= auctionEndTime, "Auction has already ended.");
-        require(!ended, "Auction already ended.");
-        
-        uint _currentPrice = currentPrice();
-        uint tokensToBuy = msg.value / _currentPrice;
-        if (tokensToBuy >= totalTokens)
-        {
-            tokensToBuy = totalTokens;
-        }
-        // require(tokensToBuy <= totalTokens, "Not enough tokens available");
+function buyTokens() external payable{
+    require(block.timestamp <= auctionEndTime, "Auction has already ended.");
+    require(!ended, "Auction already ended.");
+    require(msg.value > 0, "No ether sent");  // Check if value is greater than zero
+    
+    uint _currentPrice = currentPrice();
+    require(_currentPrice > 0, "Current price is zero");  // Ensure current price is non-zero
+    uint tokensToBuy = msg.value / _currentPrice;
+    require(tokensToBuy > 0, "Insufficient funds to buy tokens");
 
-        // Update bidder's record in the struct
-        if (bidders[msg.sender].investedAmount == 0 && bidders[msg.sender].tokensOwned == 0) {
-            // Assuming a new bidder if no funds or tokens were previously recorded
-            bidderAddresses.push(msg.sender);
-        }
-        bidders[msg.sender].investedAmount += msg.value;
-        bidders[msg.sender].tokensOwned += tokensToBuy;
-        totalTokens -= tokensToBuy;
-
-        emit TokensPurchased(msg.sender, msg.value, tokensToBuy);
-
-        if (totalTokens == 0 || block.timestamp >= auctionEndTime) {
-            finalizeAuction(_currentPrice);
-        }
+    if (tokensToBuy >= totalTokens) {
+        tokensToBuy = totalTokens;
     }
+
+    // Update bidder's record in the struct
+    if (bidders[msg.sender].investedAmount == 0 && bidders[msg.sender].tokensOwned == 0) {
+        bidderAddresses.push(msg.sender);
+    }
+    bidders[msg.sender].investedAmount += msg.value;
+    bidders[msg.sender].tokensOwned += tokensToBuy;
+    totalTokens -= tokensToBuy;
+
+    emit TokensPurchased(msg.sender, msg.value, tokensToBuy);
+
+    if (totalTokens == 0 || block.timestamp >= auctionEndTime) {
+        finalizeAuction(_currentPrice);
+    }
+}
+
 
     // Finalize the auction, distribute tokens and refund excess funds
     function finalizeAuction(uint fP) private {
@@ -106,6 +107,7 @@ contract DutchAuction {
             auctionToken.transfer(bidderAddresses[i], bidder.tokensOwned);
             emit TokensDistributed(bidderAddresses[i], bidder.tokensOwned, refund);
         }
+        payable(seller).transfer(finalPrice * totalTokens);
 
         emit AuctionEnded(finalPrice);
     }

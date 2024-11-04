@@ -69,14 +69,14 @@ contract("Dutch Auction Test", (accounts) => {
     describe("Finalization", () => {
         it("should allow the seller to finalize the auction and withdraw funds", async () => {
             const beforeBalance = web3.utils.toBN(await web3.eth.getBalance(owner));
-            await dutchAuction.finalize({from: owner});
+            await dutchAuction.finalizeAuction({from: owner});
             const afterBalance = web3.utils.toBN(await web3.eth.getBalance(owner));
             assert.isTrue(afterBalance.gt(beforeBalance), "Funds were not withdrawn");
         });
 
         it("should prevent non-seller from finalizing the auction", async () => {
             try {
-                await dutchAuction.finalize({from: bidder1});
+                await dutchAuction.finalizeAuction({from: bidder1});
                 assert.fail("Non-seller was able to finalize the auction");
             } catch (error) {
                 assert.include(error.message, "revert", "Error should be reverted due to wrong sender");
