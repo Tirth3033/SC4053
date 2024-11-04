@@ -50,6 +50,7 @@ contract DutchAuction {
 
     // Calculate the current price based on time elapsed and decrease rate
     function currentPrice() public view returns (uint) {
+        // return 1;
         if (block.timestamp <= auctionEndTime) {
             uint elapsed = block.timestamp - auctionStartTime;
             uint priceDecrease = (elapsed / priceDecreaseInterval) * priceDecreaseRate;
