@@ -4,7 +4,7 @@ const { Web3 } = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');  // Use your Ganache URL and port
 
 // Define the deployed contract address
-const deployedAddress = "0x377EC75D8c01DCdb4503d5cc68603A7701B84a9d";
+const deployedAddress = "0xD13c68276b3Dfe85aad2337143abf0c71ae60450";
 
 // Load the ABI of your DutchAuction contract
 const abi = require('./build/contracts/DutchAuction.json').abi;
@@ -20,15 +20,11 @@ async function interact() {
     let balanceBefore = await web3.eth.getBalance(sampleAccount);
     console.log("Balance Before:", web3.utils.fromWei(balanceBefore, 'ether'), 'ETH');
 
-    const txData = myContract.methods.buyTokens().encodeABI();
-    const tx = {
-      to: deployedAddress,
-      data: txData,
-      from: sampleAccount,
-      value: web3.utils.toWei('1', 'ether'),  // Sending 1 ether to buy tokens
-      gas: 3000000
-    };
-    
+    const tx =  myContract.methods.buyTokens().send({
+      from: sampleAccount,     // Replace with the appropriate account
+      value: web3.utils.toWei('1', 'ether'),  // Replace with the amount of ether to send
+       gas: 3000000 
+    });
 
     const signedTx = await web3.eth.accounts.signTransaction(tx, '0x55b19608dfc8bc0f8e96b834234c2ae88861009b0eaf934052442191b443c2ac');
 

@@ -61,13 +61,14 @@ contract DutchAuction {
 }
 
     // Function to buy tokens at the current price
-function buyTokens() external payable{
+function buyTokens() external payable {
     require(block.timestamp <= auctionEndTime, "Auction has already ended.");
     require(!ended, "Auction already ended.");
     require(msg.value > 0, "No ether sent");  // Check if value is greater than zero
     
     uint _currentPrice = currentPrice();
     require(_currentPrice > 0, "Current price is zero");  // Ensure current price is non-zero
+
     uint tokensToBuy = msg.value / _currentPrice;
     require(tokensToBuy > 0, "Insufficient funds to buy tokens");
 
