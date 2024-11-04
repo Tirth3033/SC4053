@@ -83,6 +83,8 @@ function buyTokens() external payable {
     bidders[msg.sender].investedAmount += msg.value;
     bidders[msg.sender].tokensOwned += tokensToBuy;
     totalTokens -= tokensToBuy;
+    require(totalTokens >= 0, "Requested tokens exceed availability");
+
 
     emit TokensPurchased(msg.sender, msg.value, tokensToBuy);
 
