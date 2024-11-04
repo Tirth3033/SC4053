@@ -53,7 +53,7 @@ module.exports = {
    * will spin up a managed Ganache instance for you on port 9545 when you
    * run `develop` or `test`. You can ask a truffle command to use a specific
    * network from the command line, e.g
-   *
+   
    * $ truffle test --network <network-name>
    */
 
