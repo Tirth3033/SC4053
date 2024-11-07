@@ -51,6 +51,7 @@ contract DutchAuction {
         auctionEndTime = auctionStartTime + _duration;
         totalTokens = _totalTokens;
 
+
         // // Transfer approved tokens from the seller to the contract
         // require(
         //     auctionToken.transferFrom(seller, address(this), totalTokens),
@@ -73,6 +74,8 @@ contract DutchAuction {
 
     // Function to buy tokens at the current price
     function buyTokens() external payable {
+        console.log("Seller");
+        console.log(seller);
         console.log(block.timestamp);
         require(block.timestamp <= auctionEndTime, "Auction has already ended.");
         console.log(ended);

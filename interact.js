@@ -4,7 +4,7 @@ const { Web3 } = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');  // Use your Ganache URL and port
 
 // Define the deployed contract address
-const deployedAddress = "0xA2DFd6f5c800F16E581c9D218e04d31Cc0e733fa";
+const deployedAddress = "0xC6553aBa3503f8A0184D4d87E8D9314c84af95f8";
 
 // Load the ABI of your DutchAuction contract
 const abi = require('./build/contracts/DutchAuction.json').abi;
@@ -14,7 +14,7 @@ async function interact() {
   try {
     // Example: Call the currentPrice view function
     let accounts = await web3.eth.getAccounts();
-    let sampleAccount = accounts[5];
+    let sampleAccount = accounts[4];
     const pp = await web3.eth.getBalance(accounts[0]);
     console.log("Balance Before pp:", web3.utils.fromWei(pp, 'ether'), 'ETH');
 
