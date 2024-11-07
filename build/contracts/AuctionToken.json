@@ -11127,10 +11127,67 @@
       "links": {},
       "address": "0x84faeaE3445Cb44932907a03cD48455d39c8C2Ee",
       "transactionHash": "0x40b04baf3fd0925000f7c222fdd691882edf0ba9eb8c8a3128e912ba58f104ef"
+    },
+    "1730983756630": {
+      "events": {
+        "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "spender",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "Approval",
+          "type": "event"
+        },
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "from",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "Transfer",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x37AEBDa5CC1e3318020dbd16baf7DC08D5b4E262",
+      "transactionHash": "0x4ff6d8674419ae4b053ddaffbfd8323c94347ebd02266361683c462fc4570f5f"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-11-04T18:22:57.690Z",
+  "updatedAt": "2024-11-07T14:06:48.539Z",
   "networkType": "ethereum",
   "devdoc": {
     "errors": {
