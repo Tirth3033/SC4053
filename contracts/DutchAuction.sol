@@ -19,6 +19,7 @@ contract DutchAuction {
     uint public totalTokens; // Total tokens available in the auction
     bool public ended;
     uint public finalPrice; // This will store the final confirmed price
+    bool public isInitialized;
 
     struct Bidder {
         uint investedAmount; // Amount invested by the bidder
@@ -33,31 +34,32 @@ contract DutchAuction {
     event AuctionEnded(uint finalPrice);
 
     constructor(
-        address _tokenAddress,
+        address _tokenAddress
+    ) {
+        auctionToken = AuctionToken(_tokenAddress);
+        seller = payable(msg.sender);
+        isInitialized = false;
+    }
+
+    function initializeAuction(
         uint _initialPrice,
         uint _reservePrice,
         uint _priceDecreaseRate,
         uint _priceDecreaseInterval,
         uint _duration,
         uint _totalTokens
-    ) {
-        auctionToken = AuctionToken(_tokenAddress);
-        seller = payable(msg.sender);
+    ) external {
+        require(msg.sender == seller, "Only the seller can initialize the auction");
+        require(!isInitialized, "Auction is initialized");
+
         initialPrice = _initialPrice;
         reservePrice = _reservePrice;
         priceDecreaseRate = _priceDecreaseRate;
         priceDecreaseInterval = _priceDecreaseInterval;
         auctionStartTime = block.timestamp;
-        auctionEndTime = auctionStartTime + _duration;
+        auctionEndTime = auctionStartTime.add(_duration);
         totalTokens = _totalTokens;
-
-
-        // // Transfer approved tokens from the seller to the contract
-        // require(
-        //     auctionToken.transferFrom(seller, address(this), totalTokens),
-        //     "Token transfer to contract failed"
-        // );
-
+        isInitialized = true;
     }
 
     // Calculate the current price based on time elapsed and decrease rate
@@ -111,6 +113,22 @@ contract DutchAuction {
             finalizeAuction(_currentPrice);
         }
     }
+
+    function resetAuction() external {
+        require(msg.sender == seller, "Only seller can reset auction");
+        require(totalTokens > 0 || ended, "Cannot reset ongoing auction");
+        isInitialized = false;
+        ended = false;
+        delete finalPrice;
+        delete auctionStartTime;
+        delete auctionEndTime;
+        // Reset bidder data
+        for(uint i = 0; i < bidderAddresses.length; i++) {
+            delete bidders[bidderAddresses[i]];
+        }
+        delete bidderAddresses;
+    }
+
 
     // Finalize the auction, distribute tokens and refund excess funds
     function finalizeAuction(uint fP) private {
